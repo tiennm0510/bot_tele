@@ -17,6 +17,12 @@ async def all_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = f"📢 {mentions}\n\n{extra}" if extra else f"📢 {mentions}"
     await update.message.reply_text(msg)
 
+# Tạo Flask app
+app = Flask(__name__)
+
+# Tạo Telegram Application
+application = Application.builder().token(TOKEN).build()
+
 application.add_handler(CommandHandler("all", all_command))
 
 # Route webhook
