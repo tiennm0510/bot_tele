@@ -8,7 +8,7 @@ TOKEN = os.getenv("BOT_TOKEN")
 PORT = int(os.getenv("PORT", 5000))
 
 async def all_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    admins = await context.bot.get_chat_administrators(update.effective_chat.id)
+    admins = await context.bot.get_chat_member(update.effective_chat.id)
     mentions = " ".join(
         [f"@{a.user.username}" if a.user.username else a.user.full_name for a in admins]
     )
