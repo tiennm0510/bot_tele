@@ -1,29 +1,38 @@
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import os
 
 TOKEN = os.getenv("BOT_TOKEN")
+PORT = int(os.getenv("PORT", 4953))
 
 async def all_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat = update.effective_chat
-    members = []
+    # Ghép mention các admin (Telegram không cho lấy hết member nếu >200)
+    admins = await context.bot.get_chat_administrators(update.effective_chat.id)
+    mentions = " ".join(
+        [f"@{a.user.username}" if a.user.username else a.user.full_name for a in admins]
+    )
 
-    # Lấy danh sách admin (nhóm nhỏ thì có thể đổi thành get_chat_members)
-    async for admin in context.bot.get_chat_administrators(chat.id):
-        if admin.user.username:
-            members.append(f"@{admin.user.username}")
-        else:
-            members.append(admin.user.full_name)
+    extra = " ".join(context.args) if context.args else ""
+    msg = f"📢 {mentions}\n\n{extra}" if extra else f"📢 {mentions}"
+    await update.message.reply_text(msg)
 
-    # Ghép nội dung mà user gõ thêm phía sau /all
-    extra_message = " ".join(context.args) if context.args else ""
-
-    mentions = " ".join(members)
-    text = f"📢 {mentions}\n\n{extra_message}" if extra_message else f"📢 {mentions}"
-
-    await update.message.reply_text(text)
-
-if __name__ == "__main__":
+def run_bot():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("all", all_command))
     app.run_polling()
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running")
+
+def run_server():
+    server = HTTPServer(("0.0.0.0", PORT), Handler)
+    server.serve_forever()
+
+if __name__ == "__main__":
+    threading.Thread(target=run_bot).start()
+    run_server()
