@@ -1,11 +1,12 @@
-import asyncio
 import os
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import asyncio
+from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
+# Token và URL
 TOKEN = os.getenv("BOT_TOKEN")
-PORT = int(os.getenv("PORT", 5000))
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 async def all_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     admins = await context.bot.get_chat_member(update.effective_chat.id)
@@ -16,31 +17,19 @@ async def all_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = f"📢 {mentions}\n\n{extra}" if extra else f"📢 {mentions}"
     await update.message.reply_text(msg)
 
-async def run_bot():
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("all", all_command))
-    await app.initialize()
-    await app.start()
-    await app.updater.start_polling()
-    # keep running
-    await asyncio.Event().wait()
+application.add_handler(CommandHandler("all", all_command))
 
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Bot is running")
+# Route webhook
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    application.update_queue.put_nowait(update)
+    return "ok"
 
-def run_server():
-    server = HTTPServer(("0.0.0.0", PORT), Handler)
-    server.serve_forever()
-
-async def main():
-    loop = asyncio.get_event_loop()
-    # chạy HTTP server trong thread executor
-    loop.run_in_executor(None, run_server)
-    # chạy bot
-    await run_bot()
+# Set webhook khi start
+async def set_webhook():
+    await application.bot.set_webhook(f"{WEBHOOK_URL}/{TOKEN}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(set_webhook())
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
