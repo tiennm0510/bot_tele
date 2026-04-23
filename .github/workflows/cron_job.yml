@@ -24,7 +24,7 @@ jobs:
 
       - name: Run Gold Bot
         env: # Đẩy biến môi trường từ GitHub Secrets vào file Python
-          BOT_TIENNM_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_TIENNM_TOKEN: ${{ secrets.BOT_TIENNM_TOKEN }}
           GROUP_BO_ICH_ID: ${{ secrets.GROUP_BO_ICH_ID }}
           SJC_URL: ${{ secrets.SJC_URL }}
         run: python src/gold.py
