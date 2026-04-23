@@ -53,7 +53,6 @@ async def main():
     bot = Bot(token=BOT_TOKEN)
     message = get_gold_price()
     await bot.send_message(chat_id=CHAT_ID, text=message)
-    print ("Done Job")
 
 if __name__ == "__main__":
     asyncio.run(main())
