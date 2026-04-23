@@ -1,0 +1,29 @@
+name: Gold Price Bot Cron
+
+on:
+  schedule:
+    # Chạy lúc 9h, 14h, 22h VN (tương ứng 2h, 7h, 15h UTC)
+    - cron: '0 2,7,15 * * *'
+  workflow_dispatch: # Thêm dòng này để bạn có nút bấm chạy thử bằng tay
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Gold Bot
+        env: # Đẩy biến môi trường từ GitHub Secrets vào file Python
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python src/gold.py
