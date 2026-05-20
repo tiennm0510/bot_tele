@@ -12,6 +12,8 @@ BOT_TOKEN: str = os.environ["BOT_TIENNM_TOKEN"]
 CHAT_ID: str = os.environ["GROUP_BO_ICH_ID"]
 SJC_URL = os.environ["SJC_URL"]
 
+GOLD_THREAD_ID = 2
+
 def get_location(name: str) -> str:
     match name:
         case "hanoi":
@@ -52,7 +54,7 @@ def get_gold_price():
 async def main():
     bot = Bot(token=BOT_TOKEN)
     message = get_gold_price()
-    await bot.send_message(chat_id=CHAT_ID, text=message)
+    await bot.send_message(chat_id=CHAT_ID, message_thread_id=GOLD_THREAD_ID, text=message)
 
 if __name__ == "__main__":
     asyncio.run(main())
